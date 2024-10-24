@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const connectDB = require('./config/database.config.js');
 require('dotenv').config();
 const app = express(); 
 app.use(express.json());
@@ -8,6 +9,7 @@ const corsOptions = {
     credentials: true,
     optionsSuccessStatus: 200
 }; 
+connectDB();
 app.use(cors(corsOptions));
 
 
