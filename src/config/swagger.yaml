@@ -1,0 +1,280 @@
+openapi: 3.0.0
+info:
+  title: API de Autenticación
+  description: API para la autenticación de usuarios (registro, inicio de sesión, cierre de sesión)
+  version: 1.0.0
+servers:
+  - url: http://localhost:3000/api/v1
+    description: Servidor local
+
+paths:
+  /api/v1/auth/signup:
+    post:
+      summary: Registro de un nuevo usuario
+      tags:
+        - Autenticación
+      requestBody:
+        description: Datos del nuevo usuario
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "test"
+                email:
+                  type: string
+                  example: "test@gmail.com"
+                password:
+                  type: string
+                  example: "123456"
+                rol:
+                  type: string
+                  example: "user"
+      responses:
+        '201':
+          description: Usuario registrado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "JWT_TOKEN_AQUI"
+        '400':
+          description: Error en los datos del registro
+
+  /api/v1/auth/login:
+    post:
+      summary: Iniciar sesión
+      tags:
+        - Autenticación
+      requestBody:
+        description: Credenciales de inicio de sesión
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: "test@gmail.com"
+                password:
+                  type: string
+                  example: "123456"
+      responses:
+        '200':
+          description: Inicio de sesión exitoso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "JWT_TOKEN_AQUI"
+        '401':
+          description: Credenciales inválidas
+
+  /api/v1/auth/logout:
+    get:
+      summary: Cerrar sesión
+      tags:
+        - Autenticación
+      responses:
+        '200':
+          description: Sesión cerrada correctamente
+  /api/v1/sub/subscribe:
+    post:
+      summary: Suscribir un usuario a un plan
+      tags:
+        - Suscripciones
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Información de la suscripción a crear
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscriptionName:
+                  type: string
+                  description: Nombre del plan de suscripción
+                  example: "trial"
+      responses:
+        '200':
+          description: Suscripción exitosa
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Suscripción exitosa"
+                  data:
+                    type: object
+                    properties:
+                      subscription:
+                        $ref: '#/components/schemas/SubscribedUser'
+        '400':
+          description: Ya tienes una suscripción activa
+        '404':
+          description: Tipo de suscripción no encontrado
+  /api/v1/sub/assign:
+    post:
+      summary: Asignar una suscripción a un usuario (solo administradores)
+      tags:
+        - Suscripciones
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: Datos para asignar una suscripción
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: ID del usuario
+                  example: "60f6c5b7f58a5c6d09fa1a28"
+                subscriptionName:
+                  type: string
+                  description: ID del tipo de suscripción
+                  example: "60f6c5b7f58a5c6d09fa1a29"
+      responses:
+        '200':
+          description: Suscripción asignada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Suscripción asignada correctamente"
+                  data:
+                    type: object
+                    properties:
+                      subscription:
+                        $ref: '#/components/schemas/SubscribedUser'
+        '403':
+          description: No tienes permisos para realizar esta acción
+        '404':
+          description: Usuario o tipo de suscripción no encontrado
+  /api/v1/sub/cancel:
+    post:
+      summary: Cancelar la suscripción de un usuario
+      tags:
+        - Suscripciones
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Suscripción cancelada correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Suscripción cancelada correctamente"
+                  data:
+                    type: object
+                    properties:
+                      subscription:
+                        $ref: '#/components/schemas/SubscribedUser'
+        '404':
+          description: No tienes una suscripción activa
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60f6c5b7f58a5c6d09fa1a28"
+        name:
+          type: string
+          example: "test"
+        email:
+          type: string
+          example: "test@gmail.com"
+        rol:
+          type: string
+          example: "user"
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-10-25T14:48:00.000Z" 
+    SubscribedUser:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60f6c5b7f58a5c6d09fa1a28"
+        user:
+          type: string
+          example: "60f6c5b7f58a5c6d09fa1a28"
+        subscriptionType:
+          type: object
+          $ref: '#/components/schemas/SubscriptionType'
+        isActive:
+          type: boolean
+          example: true
+        startDate:
+          type: string
+          format: date-time
+          example: "2023-10-25T14:48:00.000Z"
+        endDate:
+          type: string
+          format: date-time
+          example: "2023-11-25T14:48:00.000Z"
+        activatedBy:
+          type: string
+          example: "60f6c5b7f58a5c6d09fa1a28" 
+    SubscriptionType:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60f6c5b7f58a5c6d09fa1a29"
+        name:
+          type: string
+          example: "monthly"
+        price:
+          type: number
+          example: 9.99
+        duration:
+          type: number
+          example: 30
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-10-25T14:48:00.000Z"
+
+
+securitySchemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
+
