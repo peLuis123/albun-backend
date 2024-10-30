@@ -1,11 +1,10 @@
 const jwt = require('jsonwebtoken');
-const signToken = (id) => { 
+const signToken = (id) => {
     return jwt.sign({ id }, process.env.JWT_SECRET, {
         expiresIn: '1d',
     });
 };
 exports.createSendToken = (user, statusCode, res) => {
-   
     const token = signToken(user._id);
     const cookieOptions = {
         httpOnly: true,

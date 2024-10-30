@@ -22,3 +22,16 @@ exports.logout = (req, res) => {
     res.clearCookie('token', { path: '/' });
     res.status(200).json({ message: 'Logged out successfully' });
 };
+
+exports.getInfo = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.userId).select('-password');
+    if (!user) {
+        return next(new ApiError(404, 'Usuario no encontrado'));
+    }
+    res.status(200).json({
+        status: 'success',
+
+        user,
+
+    });
+});

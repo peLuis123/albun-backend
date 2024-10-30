@@ -1,18 +1,18 @@
 const jwt = require('jsonwebtoken')
 const ApiError = require('../utils/apiError')
+const User = require('../models/user.model');
 require('dotenv').config()
 exports.protect = (req, res, next) => {
   let token
   if (req.cookies && req.cookies.token) {
     token = req.cookies.token
   }
-  console.log(token, process.env.JWT_SECRET)
   if (!token) {
     throw new ApiError(404, 'Not authorized, no token')
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    console.log(decoded)
+    // console.log(decoded)
     req.userId = decoded.id
     next()
   }
@@ -26,25 +26,16 @@ exports.protect = (req, res, next) => {
     }
   }
 }
-exports.restrictToAdmin = (req, res, next) => {
-  let token
-  if (req.cookies && req.cookies.token) {
-    token = req.cookies.token
-  }
-  if (!token) {
-    throw new ApiError(404, 'Not authorized, no token')
-  }
+exports.restrictToAdmin = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET)
-    console.log(decoded)
-    req.user = decoded
-    if (req.user.role !== 'admin') {
-      throw new ApiError(403, 'No tienes permisos para realizar esta acción');
+    const user = await User.findById(req.userId).select('-password');
+    console.log(user.rol);
+    if (user.rol === 'user') {
+      return next(new ApiError(403, 'No tienes permisos para realizar esta acción'));
     }
-    next()
+
+    next();
   } catch (error) {
-
+    next(error);
   }
-
-  next();
 };
