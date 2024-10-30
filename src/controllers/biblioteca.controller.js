@@ -1,15 +1,18 @@
 const bibliotecaService = require('../services/biblioteca.services');
 const { catchAsync } = require('../utils/catchAsync');
 const ApiError = require('../utils/apiError');
+const SubscriptionType = require('../models/subscription.types.model');
 const SubscribedUser = require('../models/subscription.user.models');
 exports.agregarJuegoABiblioteca = catchAsync(async (req, res, next) => {
     const user = await SubscribedUser.findOneAndUpdate({ user: req.userId })
-    const { videojuegoId, accessType } = req.body;
-    console.log(user.isActive, accessType)
+    console.log(user.subscriptionType,req.userId)
+    const subscriptionType = await SubscriptionType.findById(user.subscriptionType);
+    const { videojuegoId, accessType } = req.body;  
     const existingEntry = await bibliotecaService.findGameInBiblioteca(req.userId, videojuegoId);
-
-    if (!user.isActive && accessType === "subscription") {
-        return res.status(400).json({
+    console.log(user.isActive, accessType, subscriptionType.name)
+    // if()
+    if (!user.isActive && accessType === "subscription" && subscriptionType.name ==="trial") {
+        return res.status(403).json({
             status: 'fail',
             message: `no tienes acceso a estos videojuegos, adquiere una subscripcion`
         });

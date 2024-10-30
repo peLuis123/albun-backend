@@ -1,6 +1,6 @@
 const videojuegoService = require('../services/videojuego.services');
 const { catchAsync } = require('../utils/catchAsync');
-
+const User = require('../models/user.model');
 const SubscribedUser = require('../models/subscription.user.models');
 const ApiError = require('../utils/apiError');
 exports.agregarVideojuego = catchAsync(async (req, res, next) => {
@@ -28,7 +28,7 @@ exports.agregarVideojuego = catchAsync(async (req, res, next) => {
             videojuego: newVideojuego,
         },
     });
-});
+}); 
 
 exports.verDetallesVideojuego = catchAsync(async (req, res, next) => {
     const { videojuegoId } = req.params;
@@ -116,14 +116,18 @@ exports.verDetallesVideojuego = catchAsync(async (req, res, next) => {
     }
 });
 exports.verTodosVideojuegos = catchAsync(async (req, res, next) => {
+    const user = await User.findById(req.userId);
     let videojuegos = await videojuegoService.getAllVideojuegos();
+    
     const userSubscription = await SubscribedUser.findOne({ user: req.userId });
-    if (!userSubscription.isActive) {
-        videojuegos = videojuegos.filter(
-            (game) => game.accessType.purchase === true
-        );
+    console.log(user)
+    if (user.rol !== "admin") {
+        if (!userSubscription || !userSubscription.isActive && user.rol !== "admin") {
+            videojuegos = videojuegos.filter(
+                (game) => game.accessType.purchase === true
+            );
+        }
     }
-    // console.log(videojuegos)
     res.status(200).json({
         status: 'success',
         data: {
