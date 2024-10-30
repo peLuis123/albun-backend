@@ -1,30 +1,73 @@
-# Título del Proyecto
-Desarrollo de una API con Python, FastAPI y base de datos PostgreSQL como backend para proceso de envió de remesas.
-
-
+# GameHub API - Plataforma de Gestión y Acceso a Videojuegos
+ 
 ## Descripción del proyecto 📋
-El proyecto consiste en el desarrollo de una base de datos y una API (Application Programming Interface) basada en Python, utilizando el framework FastAPI y PostgreSQL como base de datos. Este software permitirá la creación de un servicio backend que podrá ser consumido por cualquier aplicaciones front-end creada. El propósito de la API y la base de datos es agilizar los procesos manuales llevados a cabo por la empresa de remesas, donde se aplicará seguridad y las cuatro operaciones básicas CRUD.
+GameHub API es una plataforma RESTful diseñada para la gestión de videojuegos y el acceso de usuarios mediante un sistema de suscripciones y compras. Ofrece rutas seguras y específicas para administradores y usuarios, permitiendo la creación, edición y consulta de videojuegos, la asignación de suscripciones, y la gestión de bibliotecas de juegos de cada usuario.
 
 ## 📚 Funcionalidades 
-* Generar una base de datos con los clientes, beneficiarios, tasas, países, usuarios (agentes y administradores), bancos, y el registro del tickets o transacción.
-* Calculo de cambios según la tasa del día.
-* Calculo de pago de % para cada agente.
-* Envío de manera eficiente la información al cliente sobre su transferencia.
-* Llevar mejor contabilidad de los montos recibidos y enviados.
+
+* 📊 **Gestión de Videojuegos**: Permite agregar, editar, y eliminar videojuegos en la plataforma, incluyendo detalles como género, descripción, imagen, precio y métodos de acceso (compra o suscripción).
+* 🔒 **Control de Acceso por Rol**: Los administradores pueden gestionar toda la información de videojuegos y usuarios, mientras que los usuarios tienen acceso limitado basado en su plan de suscripción.
+* 💼 **Sistema de Subscripción**: Los usuarios pueden suscribirse a planes mensuales, anuales o gratuitos, con acceso restringido a juegos basados en el plan seleccionado.
+* 🎮 **Biblioteca de Juegos Personalizada**: Cada usuario tiene una biblioteca de juegos adquiridos por compra o suscripción, actualizada según sus transacciones y su plan.
+* 📈 **Control de Suscripciones Activas**: Gestión de suscripciones activas para asegurar que los usuarios accedan solo a juegos de acuerdo a sus planes vigentes.
+* 🧩 **Sistema de Autenticación Seguro**: Autenticación y autorización de usuarios mediante JWT, con roles y permisos específicos para cada tipo de usuario.
+* 🌐 **API Documentada**: Documentación completa de la API en formato Swagger, que detalla cada endpoint y sus requerimientos de uso.
+
 
 ## 🚀 Instrucciones para ejecutar el proyecto
-- Clonar repositorio
-- Abrir el proyecto con el IDE de tu preferencia
-- Instalar las dependencias y librerias estan dentro del archivo requirements.txt
+ 
+1. Clonar el repositorio
+* git clone https://github.com/peLuis123/albun-backend
+* cd nombre-del-repositorio
+2. Abrir el proyecto con el IDE de tu preferencia.
+3. Instalar las dependencias y librerías necesarias (definidas en package.json):
+* npm install
+4. Configurar las variables de entorno
+* crear un archivo .env en la raíz del proyecto.
+* configuracion segun el archivo .env.example
+5. Crear las configuraciones iniciales en la base de datos 
+* npm run seed
+6. Inicializar el servidor
+* npm run start
+7. La aplicacion estara corriendo por default en http://localhost:3000
 
-## 📄 Conceptos aplicados 
-En el proyecto se aplicaron los siguientes conceptos:
+## 🔗 Endpoints de la API
 
-- Endpoints CRUD
-- Autenticación y autorización: Implementación de OAuth2 con JWT(JSON Web Token)
-- Validación de datos: Uso de Pydantic para la validación automática de los datos de entrada y salida.
+### Autenticación (`/api/v1/auth`)
+- **POST** `/signup` - Registro de un nuevo usuario.
+- **POST** `/login` - Iniciar sesión y obtener token de autenticación.
+- **GET** `/logout` - Cerrar sesión y limpiar token.
+- **GET** `/getinfo` - Obtener información del usuario autenticado.
+
+### Usuarios (`/api/v1/user`)
+- **GET** `/` - Obtener lista de todos los usuarios (Solo Admin).
+- **POST** `/` - Crear un nuevo usuario (Solo Admin).
+- **GET** `/:id` - Obtener información de un usuario específico.
+- **PATCH** `/:id` - Actualizar información de un usuario específico.
+- **DELETE** `/:id` - Eliminar un usuario específico (Solo Admin).
+
+### Suscripciones (`/api/v1/sub`)
+- **GET** `/` - Obtener todos los tipos de suscripción.
+- **POST** `/subscribe` - Suscribir el usuario autenticado a un plan.
+- **POST** `/assign` - Asignar un plan de suscripción a un usuario (Solo Admin).
+- **POST** `/cancel` - Cancelar la suscripción del usuario autenticado.
+- **POST** `/cancelAssign` - Cancelar la suscripción de un usuario específico (Solo Admin).
+
+### Videojuegos (`/api/v1/game`)
+- **POST** `/add` - Agregar un nuevo videojuego (Solo Admin).
+- **PATCH** `/update/:videojuegoId` - Actualizar un videojuego específico (Solo Admin).
+- **DELETE** `/delete/:videojuegoId` - Eliminar un videojuego específico (Solo Admin).
+- **GET** `/` - Obtener lista de todos los videojuegos (Filtrado por suscripción para usuarios).
+- **GET** `/:videojuegoId` - Obtener detalles de un videojuego específico.
+
+### Biblioteca (`/api/v1/library`)
+- **POST** `/add` - Agregar un videojuego a la biblioteca del usuario autenticado.
+- **GET** `/` - Obtener la biblioteca completa del usuario autenticado.
+- **GET** `/:bibliotecaId` - Obtener detalles de un videojuego específico en la biblioteca.
+- **PATCH** `/:bibliotecaId` - Actualizar los detalles de un videojuego en la biblioteca.
+- **DELETE** `/:bibliotecaId` - Eliminar un videojuego de la biblioteca del usuario.
+
 
 ## 👩🏻‍💻 Autores
-- Carlos Torres
-- Jose Figuera
-- Rafael Perez
+- Pedro Luis Ramos Calla
+
