@@ -9,13 +9,13 @@ const configureSwaggerServers = () => {
 
     if (env === 'development') {
         servers.push({
-            url: `http://localhost:${process.env.PORT || 3000}`,
+            url: `http://localhost:${process.env.PORT || 3000}/api/v1/`,
             description: 'Servidor de desarrollo'
         });
     }
     else if (env === 'production') {
         servers.push({
-            url: process.env.HOST_BACKEND || 'http://35.170.243.29:4000',
+            url: process.env.HOST_BACKEND,
             description: 'Servidor de producción'
         });
     }

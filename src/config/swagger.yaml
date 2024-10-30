@@ -1,20 +1,16 @@
 openapi: 3.0.0
 info:
   title: API de Autenticación
-  description: API para la autenticación de usuarios (registro, inicio de sesión, cierre de sesión)
+  description: API para registro, inicio de sesión, cierre de sesión y obtención de información de usuario.
   version: 1.0.0
-servers:
-  - url: http://localhost:3000/api/v1
-    description: Servidor local
-
 paths:
-  /api/v1/auth/signup:
+  /auth/signup:
     post:
-      summary: Registro de un nuevo usuario
+      summary: Registro de usuario
+      description: Crea un nuevo usuario.
       tags:
-        - Autenticación
+        - Auth
       requestBody:
-        description: Datos del nuevo usuario
         required: true
         content:
           application/json:
@@ -23,37 +19,42 @@ paths:
               properties:
                 name:
                   type: string
-                  example: "test"
+                  example: "pedro luis"
                 email:
                   type: string
-                  example: "test@gmail.com"
+                  example: "pedrorc2018@gmail.com"
                 password:
                   type: string
-                  example: "123456"
+                  example: "password123"
                 rol:
                   type: string
                   example: "user"
       responses:
-        '201':
-          description: Usuario registrado exitosamente
+        201:
+          description: Usuario registrado y autenticado con éxito.
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                    example: "success"
                   token:
                     type: string
-                    example: "JWT_TOKEN_AQUI"
-        '400':
-          description: Error en los datos del registro
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+        400:
+          description: Faltan el correo o la contraseña.
+        500:
+          description: Error interno del servidor.
 
-  /api/v1/auth/login:
+  /auth/login:
     post:
-      summary: Iniciar sesión
+      summary: Inicio de sesión de usuario
+      description: Inicia sesión de usuario y obtiene un token de autenticación.
       tags:
-        - Autenticación
+        - Auth
       requestBody:
-        description: Credenciales de inicio de sesión
         required: true
         content:
           application/json:
@@ -62,54 +63,258 @@ paths:
               properties:
                 email:
                   type: string
-                  example: "test@gmail.com"
+                  example: "pedrorc2018@gmail.com"
                 password:
                   type: string
-                  example: "123456"
+                  example: "password123"
       responses:
-        '200':
-          description: Inicio de sesión exitoso
+        200:
+          description: Inicio de sesión exitoso.
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: string
+                    example: "success"
                   token:
                     type: string
-                    example: "JWT_TOKEN_AQUI"
-        '401':
-          description: Credenciales inválidas
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9"
+        401:
+          description: Correo o contraseña incorrectos.
+        400:
+          description: Faltan el correo o la contraseña.
 
-  /api/v1/auth/logout:
+  /auth/logout:
     get:
-      summary: Cerrar sesión
+      summary: Cierre de sesión de usuario
+      description: Cierra la sesión de usuario eliminando el token.
       tags:
-        - Autenticación
+        - Auth
       responses:
-        '200':
-          description: Sesión cerrada correctamente
-  /api/v1/sub/subscribe:
-    post:
-      summary: Suscribir un usuario a un plan
+        200:
+          description: Cierre de sesión exitoso.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+        500:
+          description: Error interno del servidor.
+
+  /auth/getinfo:
+    get:
+      summary: Obtener información de usuario
+      description: Obtiene la información de perfil del usuario autenticado.
       tags:
-        - Suscripciones
+        - Auth
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Información de usuario obtenida exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  user:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "60f6c5b7f58a5c6d09fa1a28"
+                      name:
+                        type: string
+                        example: "pedro luis"
+                      email:
+                        type: string
+                        example: "pedrorc2018@gmail.com"
+                      rol:
+                        type: string
+                        example: "user"
+        403:
+          description: No autorizado, token inválido o faltante.
+        404:
+          description: Usuario no encontrado.
+        500:
+          description: Error interno del servidor.
+
+
+  /user:
+    get:
+      summary: Obtener todos los usuarios
+      description: Devuelve una lista de todos los usuarios. Solo accesible para administradores.
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Lista de usuarios obtenida exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      users:
+                        type: array
+                        items:
+                          $ref: '#/models/user.models'
+        403:
+          description: No autorizado, solo accesible para administradores.
+    post:
+      summary: Crear un usuario
+      description: Crea un nuevo usuario. Solo accesible para administradores.
+      tags:
+        - User
       security:
         - bearerAuth: []
       requestBody:
-        description: Información de la suscripción a crear
         required: true
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                subscriptionName:
-                  type: string
-                  description: Nombre del plan de suscripción
-                  example: "trial"
+              $ref: '#/models/user.models'
       responses:
-        '200':
-          description: Suscripción exitosa
+        201:
+          description: Usuario creado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/models/user.models'
+        403:
+          description: No autorizado, solo accesible para administradores.
+
+  /user/{id}:
+    get:
+      summary: Obtener un usuario por ID
+      description: Devuelve los detalles de un usuario especificado por ID.
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID del usuario
+      responses:
+        200:
+          description: Usuario obtenido exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/models/user.models'
+        404:
+          description: Usuario no encontrado.
+
+    patch:
+      summary: Actualizar un usuario por ID
+      description: Actualiza los datos de un usuario especificado por ID.
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID del usuario
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/models/user.models'
+      responses:
+        200:
+          description: Usuario actualizado exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      user:
+                        $ref: '#/models/user.models'
+        404:
+          description: Usuario no encontrado.
+
+    delete:
+      summary: Eliminar un usuario por ID
+      description: Elimina un usuario especificado por ID. Solo accesible para administradores.
+      tags:
+        - User
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID del usuario
+      responses:
+        204:
+          description: Usuario eliminado exitosamente.
+        404:
+          description: Usuario no encontrado.
+        403:
+          description: No autorizado, solo accesible para administradores.
+          openapi: 3.0.0
+ 
+  /sub:
+    get:
+      summary: Obtener todos los tipos de suscripciones
+      description: Devuelve una lista de todos los tipos de suscripciones disponibles.
+      tags:
+        - Suscripción
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Lista de tipos de suscripción obtenida exitosamente.
           content:
             application/json:
               schema:
@@ -120,25 +325,60 @@ paths:
                     example: "success"
                   message:
                     type: string
-                    example: "Suscripción exitosa"
+                    example: "Suscripción asignada correctamente"
+                  subs:
+                    type: array
+                    items:
+                      $ref: '#/models/subscription.user.models'
+
+  /sub/subscribe:
+    post:
+      summary: Suscribir usuario
+      description: Permite que un usuario se suscriba a un tipo de suscripción especificado.
+      tags:
+        - Suscripción
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                subscriptionName:
+                  type: string
+                  example: "monthly"
+                  description: Nombre de la suscripción a asignar.
+      responses:
+        200:
+          description: Suscripción creada o actualizada exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Suscripción actualizada o creada exitosamente"
                   data:
                     type: object
                     properties:
                       subscription:
-                        $ref: '#/components/schemas/SubscribedUser'
-        '400':
-          description: Ya tienes una suscripción activa
-        '404':
-          description: Tipo de suscripción no encontrado
-  /api/v1/sub/assign:
+                        $ref: '#/models/subscription.user.models'
+
+  /sub/assign:
     post:
-      summary: Asignar una suscripción a un usuario (solo administradores)
+      summary: Asignar suscripción a un usuario (solo admin)
+      description: Asigna una suscripción a un usuario especificado. Solo accesible para administradores.
       tags:
-        - Suscripciones
+        - Suscripción
       security:
         - bearerAuth: []
       requestBody:
-        description: Datos para asignar una suscripción
         required: true
         content:
           application/json:
@@ -147,15 +387,15 @@ paths:
               properties:
                 userId:
                   type: string
-                  description: ID del usuario
                   example: "60f6c5b7f58a5c6d09fa1a28"
-                subscriptionName:
+                  description: ID del usuario a suscribir.
+                subscriptionTypeId:
                   type: string
-                  description: ID del tipo de suscripción
-                  example: "60f6c5b7f58a5c6d09fa1a29"
+                  example: "monthly"
+                  description: Nombre del tipo de suscripción.
       responses:
-        '200':
-          description: Suscripción asignada correctamente
+        200:
+          description: Suscripción asignada correctamente.
           content:
             application/json:
               schema:
@@ -171,21 +411,19 @@ paths:
                     type: object
                     properties:
                       subscription:
-                        $ref: '#/components/schemas/SubscribedUser'
-        '403':
-          description: No tienes permisos para realizar esta acción
-        '404':
-          description: Usuario o tipo de suscripción no encontrado
-  /api/v1/sub/cancel:
+                        $ref: '#/models/subscription.user.models'
+
+  /sub/cancel:
     post:
-      summary: Cancelar la suscripción de un usuario
+      summary: Cancelar suscripción del usuario autenticado
+      description: Permite al usuario autenticado cancelar su suscripción activa.
       tags:
-        - Suscripciones
+        - Suscripción
       security:
         - bearerAuth: []
       responses:
-        '200':
-          description: Suscripción cancelada correctamente
+        200:
+          description: Suscripción cancelada exitosamente.
           content:
             application/json:
               schema:
@@ -201,9 +439,405 @@ paths:
                     type: object
                     properties:
                       subscription:
-                        $ref: '#/components/schemas/SubscribedUser'
-        '404':
-          description: No tienes una suscripción activa
+                        $ref: '#/models/subscription.user.models'
+
+  /sub/cancelAssign:
+    post:
+      summary: Cancelar suscripción asignada a un usuario
+      description: Cancela la suscripción activa de un usuario especificado.
+      tags:
+        - Suscripción
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  example: "60f6c5b7f58a5c6d09fa1a28"
+                  description: ID del usuario al que se le cancelará la suscripción.
+      responses:
+        200:
+          description: Suscripción cancelada exitosamente.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  message:
+                    type: string
+                    example: "Suscripción cancelada correctamente"
+                  data:
+                    type: object
+                    properties:
+                      subscription:
+                        $ref: '#/models/subscription.user.models'
+ 
+  /game/add:
+    post:
+      summary: Agregar videojuego (solo admin)
+      description: Permite a un administrador agregar un videojuego a la colección.
+      tags:
+        - Videojuegos
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Assasin's Creed"
+                genre:
+                  type: string
+                  example: "Acción"
+                description:
+                  type: string
+                  example: "Juego de aventura y acción"
+                releaseDate:
+                  type: string
+                  format: date
+                  example: "2024-09-30"
+                subscription:
+                  type: boolean
+                  example: true
+                purchase:
+                  type: boolean
+                  example: false
+                price:
+                  type: number
+                  example: 20
+                image:
+                  type: string
+                  format: binary
+                  description: Imagen del videojuego
+      responses:
+        201:
+          description: Videojuego agregado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      videojuego:
+                        $ref: '#/models/videojuego.model'
+
+  /game:
+    get:
+      summary: Ver todos los videojuegos
+      description: Devuelve todos los videojuegos, filtrados según el tipo de suscripción.
+      tags:
+        - Videojuegos
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Lista de videojuegos obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      videojuegos:
+                        type: array
+                        items:
+                          $ref: '#/models/videojuego.model'
+
+  /game/{videojuegoId}:
+    get:
+      summary: Ver detalles de un videojuego
+      description: Devuelve detalles específicos de un videojuego según el acceso del usuario.
+      tags:
+        - Videojuegos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: videojuegoId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del videojuego
+      responses:
+        200:
+          description: Detalles del videojuego obtenidos exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      videojuego:
+                        $ref: '#/models/videojuego.model'
+
+  /game/update/{videojuegoId}:
+    patch:
+      summary: Editar un videojuego (solo admin)
+      description: Permite a un administrador editar la información de un videojuego.
+      tags:
+        - Videojuegos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: videojuegoId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del videojuego a editar
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                title:
+                  type: string
+                  example: "Nuevo título"
+                genre:
+                  type: string
+                  example: "Acción"
+                description:
+                  type: string
+                  example: "Descripción actualizada"
+                releaseDate:
+                  type: string
+                  format: date
+                  example: "2024-10-10"
+                subscription:
+                  type: boolean
+                  example: true
+                purchase:
+                  type: boolean
+                  example: false
+                price:
+                  type: number
+                  example: 25
+                image:
+                  type: string
+                  format: binary
+                  description: Imagen del videojuego
+      responses:
+        200:
+          description: Videojuego actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      videojuego:
+                        $ref: '#/models/videojuego.model'
+
+  /game/delete/{videojuegoId}:
+    delete:
+      summary: Eliminar un videojuego (solo admin)
+      description: Permite a un administrador eliminar un videojuego.
+      tags:
+        - Videojuegos
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: videojuegoId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del videojuego a eliminar
+      responses:
+        204:
+          description: Videojuego eliminado correctamente
+ 
+  /library/add:
+    post:
+      summary: Agregar juego a la biblioteca del usuario
+      description: Permite a un usuario agregar un juego a su biblioteca.
+      tags:
+        - Biblioteca
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                videojuegoId:
+                  type: string
+                  example: "60f6c5b7f58a5c6d09fa1a28"
+                  description: ID del videojuego
+                accessType:
+                  type: string
+                  example: "subscription"
+                  enum: ["subscription", "purchase"]
+                  description: Tipo de acceso (suscripción o compra)
+      responses:
+        201:
+          description: Videojuego agregado a la biblioteca exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      biblioteca:
+                        $ref: '#/components/schemas/Biblioteca'
+
+  /library:
+    get:
+      summary: Obtener todos los juegos de la biblioteca del usuario
+      description: Devuelve todos los juegos de la biblioteca de un usuario autenticado.
+      tags:
+        - Biblioteca
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Lista de juegos en la biblioteca obtenida exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Biblioteca'
+
+  /library/{bibliotecaId}:
+    get:
+      summary: Obtener detalles de un juego específico en la biblioteca
+      description: Devuelve los detalles de un juego en particular en la biblioteca del usuario.
+      tags:
+        - Biblioteca
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: bibliotecaId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del juego en la biblioteca
+      responses:
+        200:
+          description: Detalles del juego en la biblioteca obtenidos exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      juego:
+                        $ref: '#/components/schemas/Biblioteca'
+
+    patch:
+      summary: Actualizar información de un juego en la biblioteca
+      description: Permite al usuario actualizar detalles de un juego en su biblioteca.
+      tags:
+        - Biblioteca
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: bibliotecaId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del juego en la biblioteca
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                accessType:
+                  type: string
+                  example: "purchase"
+                  enum: ["subscription", "purchase"]
+                  description: Tipo de acceso
+      responses:
+        200:
+          description: Juego en la biblioteca actualizado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: "success"
+                  data:
+                    type: object
+                    properties:
+                      juego:
+                        $ref: '#/components/schemas/Biblioteca'
+
+    delete:
+      summary: Eliminar un juego de la biblioteca del usuario
+      description: Permite al usuario eliminar un juego de su biblioteca.
+      tags:
+        - Biblioteca
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: bibliotecaId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: ID del juego en la biblioteca
+      responses:
+        204:
+          description: Juego eliminado de la biblioteca
 components:
   schemas:
     User:
@@ -211,21 +845,62 @@ components:
       properties:
         _id:
           type: string
-          example: "60f6c5b7f58a5c6d09fa1a28"
+          example: "60f6c5b7f58a5c6d09fa1a27"
         name:
           type: string
-          example: "test"
+          example: "pedro luis"
         email:
           type: string
-          example: "test@gmail.com"
+          example: "pedrorc2018@gmail.com"
         rol:
           type: string
+          enum: [user, admin]
           example: "user"
         createdAt:
           type: string
           format: date-time
-          example: "2023-10-25T14:48:00.000Z" 
-    SubscribedUser:
+          example: "2024-10-25T00:03:01.415Z"
+
+    Videojuego:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60f6c5b7f58a5c6d09fa1a27"
+        title:
+          type: string
+          example: "Assassin's Creed"
+        genre:
+          type: string
+          example: "Aventura"
+        description:
+          type: string
+          example: "Juego de acción y aventuras en el que los jugadores exploran un vasto mundo."
+        releaseDate:
+          type: string
+          format: date-time
+          example: "2024-10-20T00:00:00.000Z"
+        imagePath:
+          type: string
+          example: "/public/images/assassins-creed.jpg"
+        accessType:
+          type: object
+          properties:
+            subscription:
+              type: boolean
+              example: true
+            purchase:
+              type: boolean
+              example: false
+        price:
+          type: number
+          example: 49.99
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-10-26T02:00:45.259Z"
+
+    Biblioteca:
       type: object
       properties:
         _id:
@@ -233,9 +908,49 @@ components:
           example: "60f6c5b7f58a5c6d09fa1a28"
         user:
           type: string
-          example: "60f6c5b7f58a5c6d09fa1a28"
+          example: "60f6c5b7f58a5c6d09fa1a29"
+        videojuego:
+          $ref: '#/components/schemas/Videojuego'
+        accessType:
+          type: string
+          enum: ["purchase", "subscription"]
+          example: "subscription"
+        addedAt:
+          type: string
+          format: date-time
+          example: "2024-10-30T00:46:57.826Z"
+
+    SubscriptionType:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60f6c5b7f58a5c6d09fa1a30"
+        name:
+          type: string
+          enum: [trial, monthly, annual]
+          example: "monthly"
+        price:
+          type: number
+          example: 9.99
+        duration:
+          type: integer
+          example: 30
+          description: Duración en días de la suscripción
+        createdAt:
+          type: string
+          format: date-time
+          example: "2024-10-24T23:29:02.579Z"
+
+    SubscribedUser:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "60f6c5b7f58a5c6d09fa1a31"
+        user:
+          $ref: '#/components/schemas/User'
         subscriptionType:
-          type: object
           $ref: '#/components/schemas/SubscriptionType'
         isActive:
           type: boolean
@@ -243,38 +958,15 @@ components:
         startDate:
           type: string
           format: date-time
-          example: "2023-10-25T14:48:00.000Z"
+          example: "2024-10-25T02:25:20.447Z"
         endDate:
           type: string
           format: date-time
-          example: "2023-11-25T14:48:00.000Z"
+          example: "2024-11-01T02:25:20.447Z"
         activatedBy:
           type: string
-          example: "60f6c5b7f58a5c6d09fa1a28" 
-    SubscriptionType:
-      type: object
-      properties:
-        _id:
-          type: string
           example: "60f6c5b7f58a5c6d09fa1a29"
-        name:
-          type: string
-          example: "monthly"
-        price:
-          type: number
-          example: 9.99
-        duration:
-          type: number
-          example: 30
         createdAt:
           type: string
           format: date-time
-          example: "2023-10-25T14:48:00.000Z"
-
-
-securitySchemes:
-  bearerAuth:
-    type: http
-    scheme: bearer
-    bearerFormat: JWT
-
+          example: "2024-10-25T02:15:54.214Z"
