@@ -13,7 +13,7 @@ swaggerConfig(app);
 app.use(cookieMiddleware);
 app.use(express.json());
 const corsOptions = {
-    origin: [`${process.env.HOST_PRODUCCION}`],
+    origin: [`${process.env.HOST_FRONTED}`],
     credentials: true,
     optionsSuccessStatus: 200
 }; 
@@ -22,7 +22,10 @@ connectDB();
 app.use(cors(corsOptions));
 app.use('/api/v1', appRouter); 
 app.use(requestTime);
+const path = require('path');
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
+console.log(__dirname, 'public')
 app.use(errorConverter);
 app.use(errorHandler);
 module.exports = app;
