@@ -13,6 +13,16 @@ GameHub API es una plataforma RESTful diseñada para la gestión de videojuegos 
 * 🧩 **Sistema de Autenticación Seguro**: Autenticación y autorización de usuarios mediante JWT, con roles y permisos específicos para cada tipo de usuario.
 * 🌐 **API Documentada**: Documentación completa de la API en formato Swagger, que detalla cada endpoint y sus requerimientos de uso.
 
+## 🛠️ Requisitos del Proyecto
+
+Para ejecutar este proyecto, necesitarás tener instalados los siguientes programas:
+
+- **Node.js** (versión 16 o superior): Entorno de ejecución para construir y ejecutar JavaScript en el servidor.
+- **MongoDB**: Base de datos NoSQL para almacenar usuarios, suscripciones, videojuegos, bibliotecas, etc.
+- **Express.js**: Framework de Node.js utilizado para construir la API REST.
+
+Asegúrate de que estos programas estén instalados y correctamente configurados antes de ejecutar el proyecto.
+
 
 ## 🚀 Instrucciones para ejecutar el proyecto
  
